@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>VisionPro WebXR 展示平台</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+    }
+
+    .model-controls-panel .icon-svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      color: currentColor;
+    }
+
+    .model-controls-panel .icon-svg path,
+    .model-controls-panel .icon-svg polyline,
+    .model-controls-panel .icon-svg line,
+    .model-controls-panel .icon-svg rect,
+    .model-controls-panel .mode-icon path,
+    .model-controls-panel .mode-icon rect,
+    .model-controls-panel .mode-icon circle {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.85;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .model-controls-panel .mode-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+      color: currentColor;
+    }
+
+    .model-controls-panel .mode-icon .dot {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .model-controls-panel .mode-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.45px;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="logo">
+      <a href="/">
+        <img src="/images/3D文物古建.png" alt="Logo" onerror="this.style.display='none'">
+      </a>
+    </div>
+    <nav class="main-nav">
+      <ul></ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="model-container">
+      <canvas id="model-canvas"></canvas>
+
+      <div class="model-controls-panel">
+        <div class="control-group">
+          <button id="reset-camera" class="icon-btn" title="重置视角" aria-label="重置视角">
+            <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.34 5.66" />
+              <polyline points="20 7 20 11 16 11" />
+            </svg>
+          </button>
+
+          <button id="fullscreen" class="icon-btn" title="进入全屏" aria-label="进入全屏">
+            <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5" />
+            </svg>
+          </button>
+
+          <button id="vr-mode-btn" class="icon-btn vr-btn xr-btn" title="进入 VR 模式" aria-label="进入 VR 模式">
+            <svg class="mode-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="3.5" y="7.5" width="17" height="9" rx="4.5" />
+              <circle class="dot" cx="9" cy="12" r="1.1" />
+              <circle class="dot" cx="15" cy="12" r="1.1" />
+            </svg>
+            <span class="mode-label">VR</span>
+          </button>
+
+          <button id="mr-mode-btn" class="icon-btn vr-btn xr-btn" title="进入 MR 模式" aria-label="进入 MR 模式">
+            <svg class="mode-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="4" y="6.5" width="16" height="11" rx="2.5" />
+              <path d="M12 6.5v11M4 12h16" />
+            </svg>
+            <span class="mode-label">MR</span>
+          </button>
+        </div>
+      </div>
+
+<div class="model-info">
+  <div class="model-title">
+    <h1 id="model-name">模型名称</h1>
+  </div>
+  <div class="model-format">
+    <p id="model-format">格式: -</p>
+  </div>
+  <div class="model-description">
+    <p id="model-desc">模型描述信息</p>
+  </div>
+</div>
+    </div>
+
+    <div class="controls-container">
+      <div class="control-buttons">
+        <button id="prev-model" class="control-btn" title="上一个模型" aria-label="上一个模型">
+          <svg class="icon-svg" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill-rule="evenodd"
+              d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+          </svg>
+        </button>
+
+        <button id="next-model" class="control-btn" title="下一个模型" aria-label="下一个模型">
+          <svg class="icon-svg" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill-rule="evenodd"
+              d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="model-thumbnails" id="thumbnails-container"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <div class="footer-logo">
+          <img src="/images/3D模型展示.png" alt="Logo" class="footer-logo-img" onerror="this.style.display='none'">
+          <p>3D 模型展示系统</p>
+        </div>
+      </div>
+
+      <div class="footer-middle">
+        <p class="tech-support-title">关于我们</p>
+        <div class="lab-group">
+          <div class="lab-item">
+            <img src="/images/3D文物古建.png" alt="文物古建" onerror="this.style.display='none'">
+            <p>文物古建 3D 重建与展示实验室</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-right">
+        <div class="tech-support">
+          <p class="tech-support-title">技术支持</p>
+          <div class="tech-links">
+            <a href="https://threejs.org/" target="_blank" rel="noopener noreferrer" class="tech-link">Three.js</a>
+            <a href="https://superspl.at/editor" target="_blank" rel="noopener noreferrer" class="tech-link">SuperSplat</a>
+            <a href="https://zhuanlan.zhihu.com/p/680669616" target="_blank" rel="noopener noreferrer" class="tech-link">3D Gaussian
+              Splatting</a>
+          </div>
+        </div>
+
+        <div class="copyright">
+          <p>© 2025 3DMD · DGroup 版权所有</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/node_modules/three/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls.js": "/node_modules/three/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/loaders/GLTFLoader.js": "/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+        "three/examples/jsm/loaders/DRACOLoader.js": "/node_modules/three/examples/jsm/loaders/DRACOLoader.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "/node_modules/three/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/loaders/STLLoader.js": "/node_modules/three/examples/jsm/loaders/STLLoader.js",
+        "three/examples/jsm/loaders/FBXLoader.js": "/node_modules/three/examples/jsm/loaders/FBXLoader.js",
+        "three/addons/webxr/VRButton.js": "/node_modules/three/examples/jsm/webxr/VRButton.js",
+        "@mkkellogg/gaussian-splats-3d": "/node_modules/@mkkellogg/gaussian-splats-3d/build/gaussian-splats-3d.module.js"
+      }
+    }
+  </script>
+
+  <script>
+    (function initWebSocketLogger() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+      let ws = null;
+
+      function connectWS() {
+        try {
+          ws = new WebSocket(wsUrl);
+          ws.onopen = () => console.log('[WS] log bridge connected');
+          ws.onclose = () => {
+            console.warn('[WS] log bridge disconnected, retrying in 5s');
+            setTimeout(connectWS, 5000);
+          };
+          ws.onerror = () => console.error('[WS] log bridge error');
+        } catch (error) {
+          console.error('[WS] log bridge init failed', error);
+        }
+      }
+
+      const originalLog = console.log;
+      const originalWarn = console.warn;
+      const originalError = console.error;
+      const originalInfo = console.info;
+
+      function sendLog(type, args) {
+        const message = Array.from(args).map(arg => {
+          if (typeof arg === 'object') {
+            try {
+              return JSON.stringify(arg);
+            } catch (_) {
+              return String(arg);
+            }
+          }
+          return String(arg);
+        }).join(' ');
+
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          try {
+            const timestamp = new Date().toLocaleTimeString('zh-CN', {
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            });
+            ws.send(JSON.stringify({ type, message, timestamp }));
+          } catch (_) {
+            // Ignore transient logging transport errors.
+          }
+        }
+      }
+
+      console.log = function () {
+        originalLog.apply(console, arguments);
+        sendLog('LOG', arguments);
+      };
+
+      console.warn = function () {
+        originalWarn.apply(console, arguments);
+        sendLog('WARN', arguments);
+      };
+
+      console.error = function () {
+        originalError.apply(console, arguments);
+        sendLog('ERROR', arguments);
+      };
+
+      console.info = function () {
+        originalInfo.apply(console, arguments);
+        sendLog('INFO', arguments);
+      };
+
+      connectWS();
+      console.log('[APP] debug logger ready');
+    })();
+  </script>
+
+  <script type="module" src="/js/app.js"></script>
+
+  <div class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">加载中...</div>
+  </div>
+</body>
+
+</html>

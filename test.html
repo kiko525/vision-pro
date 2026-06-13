@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebXR 支持测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+        }
+        .error {
+            background: #f44336;
+            color: white;
+        }
+        .info {
+            background: #2196F3;
+            color: white;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 WebXR 支持检测</h1>
+    
+    <div class="test-item">
+        <strong>浏览器信息:</strong>
+        <pre id="browser-info"></pre>
+    </div>
+
+    <div class="test-item">
+        <strong>1. navigator.xr 存在:</strong>
+        <span class="status" id="xr-exists">检测中...</span>
+    </div>
+
+    <div class="test-item">
+        <strong>2. HTTPS 连接:</strong>
+        <span class="status" id="https-check">检测中...</span>
+    </div>
+
+    <div class="test-item">
+        <strong>3. immersive-ar 支持:</strong>
+        <span class="status" id="ar-support">检测中...</span>
+        <p style="margin-top: 5px; font-size: 14px; color: #666;">
+            AR 模式 - 增强现实（透视真实环境）
+        </p>
+    </div>
+
+    <div class="test-item">
+        <strong>4. immersive-vr 支持:</strong>
+        <span class="status" id="vr-support">检测中...</span>
+        <p style="margin-top: 5px; font-size: 14px; color: #666;">
+            VR 模式 - 虚拟现实（完全虚拟环境）
+        </p>
+    </div>
+
+    <div class="test-item">
+        <strong>推荐模式:</strong>
+        <span class="status info" id="recommended-mode">检测中...</span>
+    </div>
+
+    <div class="test-item">
+        <strong>详细信息:</strong>
+        <pre id="details"></pre>
+    </div>
+
+    <div class="test-item">
+        <button class="button" onclick="runTests()">🔄 重新检测</button>
+        <button class="button" onclick="clearCache()">🗑️ 清除缓存并刷新</button>
+        <button class="button" onclick="testARSession()">🎯 测试 AR 会话</button>
+    </div>
+
+    <div class="test-item">
+        <strong>控制台日志:</strong>
+        <pre id="console-log"></pre>
+    </div>
+
+    <script>
+        let logs = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            logs.push(logMessage);
+            console.log(message);
+            document.getElementById('console-log').textContent = logs.join('\n');
+        }
+
+        function setStatus(id, text, type) {
+            const element = document.getElementById(id);
+            element.textContent = text;
+            element.className = 'status ' + type;
+        }
+
+        async function runTests() {
+            logs = [];
+            log('开始 WebXR 检测...');
+
+            // 浏览器信息
+            const browserInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            };
+            document.getElementById('browser-info').textContent = JSON.stringify(browserInfo, null, 2);
+            log('浏览器信息已获取');
+
+            // 检查 navigator.xr
+            if (navigator.xr) {
+                setStatus('xr-exists', '✓ 支持', 'success');
+                log('✓ navigator.xr 存在');
+            } else {
+                setStatus('xr-exists', '✗ 不支持', 'error');
+                log('✗ navigator.xr 不存在');
+                document.getElementById('details').textContent = '错误: 浏览器不支持 WebXR API\n\n可能原因:\n1. 浏览器版本过旧\n2. 未启用 WebXR 功能\n3. 不是 Vision Pro Safari';
+                return;
+            }
+
+            // 检查 HTTPS
+            const isHTTPS = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+            if (isHTTPS) {
+                setStatus('https-check', '✓ 安全连接', 'success');
+                log('✓ 使用 HTTPS 或 localhost');
+            } else {
+                setStatus('https-check', '✗ 不安全', 'error');
+                log('✗ 未使用 HTTPS');
+            }
+
+            // 检查 immersive-ar 支持
+            try {
+                const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
+                if (arSupported) {
+                    setStatus('ar-support', '✓ 支持', 'success');
+                    log('✓ 支持 immersive-ar 模式');
+                } else {
+                    setStatus('ar-support', '✗ 不支持', 'info');
+                    log('- 不支持 immersive-ar 模式');
+                }
+            } catch (error) {
+                setStatus('ar-support', '✗ 检测失败', 'error');
+                log('✗ 检测 immersive-ar 失败: ' + error.message);
+            }
+
+            // 检查 immersive-vr 支持
+            try {
+                const vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
+                if (vrSupported) {
+                    setStatus('vr-support', '✓ 支持', 'success');
+                    log('✓ 支持 immersive-vr 模式');
+                } else {
+                    setStatus('vr-support', '✗ 不支持', 'info');
+                    log('- 不支持 immersive-vr 模式');
+                }
+            } catch (error) {
+                setStatus('vr-support', '✗ 检测失败', 'error');
+                log('✗ 检测 immersive-vr 失败: ' + error.message);
+            }
+
+            // 推荐模式
+            const arSupported = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
+            const vrSupported = await navigator.xr.isSessionSupported('immersive-vr').catch(() => false);
+            
+            if (vrSupported && !arSupported) {
+                setStatus('recommended-mode', '使用 VR 模式', 'success');
+                log('推荐: 使用 immersive-vr 模式（Vision Pro 当前配置）');
+            } else if (arSupported) {
+                setStatus('recommended-mode', '使用 AR 模式', 'success');
+                log('推荐: 使用 immersive-ar 模式');
+            } else {
+                setStatus('recommended-mode', '无可用模式', 'error');
+                log('✗ 没有可用的 XR 模式');
+            }
+
+            // 详细信息
+            const details = {
+                'WebXR API': typeof navigator.xr,
+                'isSessionSupported': typeof navigator.xr?.isSessionSupported,
+                'requestSession': typeof navigator.xr?.requestSession,
+                'Protocol': window.location.protocol,
+                'Hostname': window.location.hostname,
+                'Port': window.location.port
+            };
+            document.getElementById('details').textContent = JSON.stringify(details, null, 2);
+            log('检测完成');
+        }
+
+        function clearCache() {
+            log('清除缓存并刷新页面...');
+            // 清除缓存的方法
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            // 强制刷新
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 500);
+        }
+
+        async function testARSession() {
+            log('尝试启动 XR 会话...');
+            
+            if (!navigator.xr) {
+                log('✗ navigator.xr 不存在');
+                alert('浏览器不支持 WebXR');
+                return;
+            }
+
+            try {
+                // 检查支持的模式
+                const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
+                const vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
+                
+                let mode = null;
+                if (vrSupported) {
+                    mode = 'immersive-vr';
+                    log('✓ 使用 VR 模式');
+                } else if (arSupported) {
+                    mode = 'immersive-ar';
+                    log('✓ 使用 AR 模式');
+                } else {
+                    log('✗ 不支持任何 XR 模式');
+                    alert('设备不支持 XR 模式');
+                    return;
+                }
+
+                log(`请求 ${mode} 会话...`);
+                const session = await navigator.xr.requestSession(mode, {
+                    requiredFeatures: ['local-floor'],
+                    optionalFeatures: ['bounded-floor', 'hand-tracking']
+                });
+                
+                log(`✓ ${mode} 会话启动成功！`);
+                alert(`${mode} 会话启动成功！\n\n会话将在 3 秒后结束。`);
+                
+                setTimeout(() => {
+                    session.end();
+                    log('XR 会话已结束');
+                }, 3000);
+
+            } catch (error) {
+                log('✗ 启动 XR 会话失败: ' + error.message);
+                alert('启动 XR 会话失败:\n' + error.message);
+            }
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

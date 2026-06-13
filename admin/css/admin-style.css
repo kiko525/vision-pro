@@ -1,0 +1,105 @@
+/* VisionPro 管理页面样式 */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+}
+
+/* 模型列表样式 */
+.card-header {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+
+.card-header .row {
+    align-items: center;
+}
+
+.model-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.model-item:hover {
+    background-color: #f9f9f9;
+}
+
+.background-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.background-item:hover {
+    background-color: #f9f9f9;
+}
+
+.model-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.model-format-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.format-glb, .format-gltf {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+/* 排序按钮样式 */
+.order-controls {
+    white-space: nowrap;
+}
+
+.btn-order {
+    padding: 2px 5px;
+    font-size: 0.8rem;
+}
+
+/* 背景图选择框样式 */
+.background-model-select {
+    border-color: #007bff !important;
+}
+
+.background-model-select:focus {
+    border-color: #0056b3 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* 列表项对齐 */
+.model-item [class*="col-"],
+.background-item [class*="col-"] {
+    display: flex;
+    align-items: center;
+}
+
+/* 响应式调整 */
+@media (max-width: 992px) {
+    .col-1, .col-2, .col-3, .col-md-6 {
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-header {
+        display: none;
+    }
+    
+    .model-item {
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+    }
+    
+    .model-item [class*="col-"] {
+        margin-bottom: 10px;
+    }
+}

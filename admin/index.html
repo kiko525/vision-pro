@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionPro 3D模型管理系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="./css/admin-style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">VisionPro 3D模型管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">模型列表</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#uploadModal">上传模型</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#uploadBackgroundModal">上传背景图</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html" target="_blank">查看VisionPro页面</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <div class="container-fluid mt-4">
+        <!-- 搜索和筛选 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="搜索模型...">
+                    <button class="btn btn-primary" id="searchBtn">
+                        <i class="bi bi-search"></i> 搜索
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                        筛选类型
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item" href="#" data-filter="all">所有格式</a></li>
+                        <li><a class="dropdown-item" href="#" data-filter="glb">GLB/GLTF</a></li>
+                    </ul>
+                </div>
+                <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="bi bi-plus-lg"></i> 添加模型
+                </button>
+                <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#uploadBackgroundModal">
+                    <i class="bi bi-plus-lg"></i> 添加背景图
+                </button>
+                <button class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#batchDeleteModal">
+                    <i class="bi bi-trash"></i> 批量删除
+                </button>
+            </div>
+        </div>
+
+        <!-- 模型列表 -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">模型列表</h5>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="bi bi-plus-lg"></i> 添加模型
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="card-header">
+                    <div class="row text-center">
+                        <div class="col-1">序号</div>
+                        <div class="col-2">预览图</div>
+                        <div class="col-2">名称</div>
+                        <div class="col-3">描述</div>
+                        <div class="col-1">格式</div>
+                        <div class="col-1">顺序</div>
+                        <div class="col-2">操作</div>
+                    </div>
+                </div>
+                <div id="modelList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">正在加载...</span>
+                        </div>
+                        <p class="mt-2">正在加载模型数据...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 背景图列表 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">背景图列表</h5>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadBackgroundModal">
+                    <i class="bi bi-plus-lg"></i> 添加背景图
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="card-header">
+                    <div class="row text-center">
+                        <div class="col-1">序号</div>
+                        <div class="col-2">预览图</div>
+                        <div class="col-7">选项</div>
+                        <div class="col-2">操作</div>
+                    </div>
+                </div>
+                <div id="backgroundList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">正在加载...</span>
+                        </div>
+                        <p class="mt-2">正在加载背景图数据...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传模型模态框 -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传新模型</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <div class="mb-3">
+                            <label for="modelName" class="form-label">模型名称</label>
+                            <input type="text" class="form-control" id="modelName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modelDescription" class="form-label">模型描述</label>
+                            <textarea class="form-control" id="modelDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modelFile" class="form-label">模型文件</label>
+                            <input type="file" class="form-control" id="modelFile" accept=".glb,.gltf,.ply,.splat,.ksplat,.spz,.fbx,.obj,.stl" required>
+                            <div class="form-text">支持的格式: GLB, GLTF, PLY, SPLAT, KSPLAT, SPZ, FBX, OBJ, STL</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="thumbnailFile" class="form-label">缩略图</label>
+                            <input type="file" class="form-control" id="thumbnailFile" accept="image/*" required>
+                            <div class="form-text">建议尺寸: 200x200 像素</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modelOrder" class="form-label">显示顺序</label>
+                            <input type="number" class="form-control" id="modelOrder" min="1" value="1">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="uploadBtn">上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑模型模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑模型</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editModelId">
+                        <div class="mb-3">
+                            <label for="editModelName" class="form-label">模型名称</label>
+                            <input type="text" class="form-control" id="editModelName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editModelDescription" class="form-label">模型描述</label>
+                            <textarea class="form-control" id="editModelDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editThumbnailFile" class="form-label">更新缩略图 (可选)</label>
+                            <input type="file" class="form-control" id="editThumbnailFile" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editModelOrder" class="form-label">显示顺序</label>
+                            <input type="number" class="form-control" id="editModelOrder" min="1" value="1">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除此模型吗？此操作不可恢复。</p>
+                    <p id="deleteModelName" class="fw-bold"></p>
+                    <input type="hidden" id="deleteModelId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量删除模态框 -->
+    <div class="modal fade" id="batchDeleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">批量删除模型</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>请选择要批量删除的模型格式：</p>
+                    <!-- <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="deleteFormat" id="deleteAll" value="all">
+                        <label class="form-check-label" for="deleteAll">所有格式</label>
+                    </div> -->
+                    <!-- <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="deleteFormat" id="deleteGlb" value="glb" checked>
+                        <label class="form-check-label" for="deleteGlb">GLB/GLTF 格式</label>
+                    </div> -->
+                      <div id="batchDeleteFormatList">
+                        <!-- 动态生成复选框 -->
+                      </div>
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 警告：此操作将删除所选格式的<strong>所有</strong>模型，且不可恢复！
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmBatchDeleteBtn">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传背景图模态框 -->
+    <div class="modal fade" id="uploadBackgroundModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传新背景图</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadBackgroundForm">
+                        <div class="mb-3">
+                            <label for="backgroundFile" class="form-label">背景图文件</label>
+                            <input type="file" class="form-control" id="backgroundFile" accept="image/*" required>
+                            <div class="form-text">支持的格式: JPG, PNG, GIF, WEBP</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="uploadBackgroundBtn">上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除背景图模态框 -->
+    <div class="modal fade" id="deleteBackgroundModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除此背景图吗？此操作不可恢复。</p>
+                    <p id="deleteBackgroundName" class="fw-bold"></p>
+                    <input type="hidden" id="deleteBackgroundId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBackgroundBtn">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/admin.js"></script>
+</body>
+</html>

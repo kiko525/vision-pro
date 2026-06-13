@@ -1,0 +1,74 @@
+{
+  "certificate": {
+    "validity": {
+      "years": 2,
+      "notBefore": "now",
+      "notAfter": "2years"
+    },
+    "subject": {
+      "commonName": "3D Model Viewer",
+      "countryName": "CN",
+      "stateOrProvinceName": "Beijing",
+      "localityName": "Beijing",
+      "organizationName": "3D Model Display",
+      "organizationalUnitName": "Development"
+    },
+    "subjectAltName": {
+      "dns": [
+        "localhost",
+        "*.local",
+        "3dmodel.local"
+      ],
+      "ip": [
+        "127.0.0.1",
+        "::1",
+        "10.27.0.22",
+        "10.110.161.70",
+        "10.100.36.40",
+        "10.110.163.13",
+        "10.112.240.64",
+        "10.100.36.40",
+        "192.168.200.1",
+        "192.168.5.2",
+        "192.168.129.1"
+      ]
+    },
+    "extensions": {
+      "basicConstraints": {
+        "cA": true
+      },
+      "keyUsage": {
+        "keyCertSign": true,
+        "digitalSignature": true,
+        "nonRepudiation": true,
+        "keyEncipherment": true,
+        "dataEncipherment": true
+      },
+      "extKeyUsage": {
+        "serverAuth": true,
+        "clientAuth": true
+      }
+    }
+  },
+  "deployment": {
+    "development": {
+      "comment": "本地开发环境 - Windows",
+      "primaryIP": "10.110.161.70",
+      "port": 3001
+    },
+    "production": {
+      "comment": "生产服务器 - 请在部署前更新以下信息",
+      "serverIP": "YOUR_SERVER_IP",
+      "domain": "YOUR_DOMAIN.com",
+      "port": 443,
+      "note": "如果有域名，建议使用 Let's Encrypt 证书"
+    }
+  },
+  "instructions": {
+    "step1": "编辑 subjectAltName.ip 数组，添加你的服务器公网IP",
+    "step2": "如果有域名，添加到 subjectAltName.dns 数组",
+    "step3": "运行 'npm run cert' 生成证书",
+    "step4": "证书文件会保存在 cert/ 目录",
+    "step5": "部署时将整个 cert/ 目录复制到服务器"
+  }
+}

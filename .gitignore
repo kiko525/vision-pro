@@ -1,0 +1,17 @@
+/.npm-cache
+/.vscode
+/node_modules
+/cert
+
+# Local runtime data (keep templates only)
+/data/*.json
+!/data/*.example.json
+
+# Local logs
+*.log
+/server.out.log
+/server.err.log
+
+# OS noise
+.DS_Store
+Thumbs.db
