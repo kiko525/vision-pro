@@ -49,7 +49,8 @@ export async function loadPlyModel(path, modelId, onProgress, options = {}) {
   
   return new Promise(async (resolve, reject) => {
     try {
-      // 动态导入Gaussian Splats 3D库
+      // 预检：文件不可用时直接抛错，避免 addSplatScene 拿到非点云数据后既不报错也不结束。
+      await ensureSplatFileLoadable(path);
       const GaussianSplats3D = await import('@mkkellogg/gaussian-splats-3d');
       
       // 清理旧的查看器
@@ -266,7 +267,40 @@ export function update() {
     viewer.update();
   }
 }
+// 新增：模块级辅助函数
+async function ensureSplatFileLoadable(path) {
+  let res;
+  try {
+    res = await fetch(path, { headers: { Range: 'bytes=0-63' }, cache: 'no-store' });
+  } catch (e) {
+    throw new Error(`无法获取模型文件: ${e.message || '网络错误'}`);
+  }
 
+  // 206 = Range 生效的部分内容；200 = 完整返回
+  if (!res.ok && res.status !== 206) {
+    throw new Error(`模型文件不存在或无法访问 (HTTP ${res.status})`);
+  }
+
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (contentType.includes('text/html')) {
+    throw new Error('模型文件缺失：服务器返回了网页而非模型数据');
+  }
+
+  // 嗅探首字节，排除“状态 200 但内容是 HTML 回退页”
+  try {
+    const buf = await res.arrayBuffer();
+    const head = new TextDecoder('utf-8', { fatal: false })
+      .decode(new Uint8Array(buf).slice(0, 16))
+      .trim()
+      .toLowerCase();
+    if (head.startsWith('<!doctype') || head.startsWith('<html')) {
+      throw new Error('模型文件缺失：服务器返回了网页而非模型数据');
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('模型文件缺失')) throw e;
+    // 嗅探读取失败本身不致命，交给后续 addSplatScene
+  }
+}
 /**
  * 渲染查看器（VR模式下每帧调用）
  */

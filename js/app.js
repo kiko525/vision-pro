@@ -265,9 +265,16 @@ async function loadGaussianSplatModel(path, modelId, token) {
           activeStandardObject = result.object;
         }
       },
+      // onError: (error) => {
+      //   if (token !== loadToken) return;
+      //   throw new Error(error || 'Gaussian splat load failed');
+      // },
       onError: (error) => {
+        // 不要在回调里 throw：loadPlyModel 失败时会 reject，
+        // 由外层 loadModel 的 try/catch 统一处理。
+        // 在此 throw 会早于 reject 执行，使外层 Promise 永不 settle、isLoading 卡死。
         if (token !== loadToken) return;
-        throw new Error(error || 'Gaussian splat load failed');
+        console.warn('[APP] gaussian splat load error:', error);
       },
       showLoading,
       hideLoading
@@ -275,6 +282,41 @@ async function loadGaussianSplatModel(path, modelId, token) {
   );
 }
 
+// async function loadStandardModel(path, format, token) {
+//   if (token !== loadToken) return;
+
+//   currentModelType = 'standard';
+
+//   // Leave standalone splat viewer if active.
+//   await PlyViewer.cleanup();
+
+//   clearActiveStandardModel();
+
+//   let object = null;
+//   switch (format) {
+//     case 'glb':
+//     case 'gltf':
+//       object = await loadGLTF(path, token);
+//       break;
+//     case 'obj':
+//       object = await loadOBJ(path, token);
+//       break;
+//     case 'stl':
+//       object = await loadSTL(path, token);
+//       break;
+//     case 'fbx':
+//       object = await loadFBX(path, token);
+//       break;
+//     default:
+//       throw new Error(`不支持的模型格式: ${format}`);
+//   }
+
+//   if (!object || token !== loadToken) return;
+
+//   scene.add(object);
+//   activeStandardObject = object;
+//   resetCameraForModel(object);
+// }
 async function loadStandardModel(path, format, token) {
   if (token !== loadToken) return;
 
@@ -283,8 +325,7 @@ async function loadStandardModel(path, format, token) {
   // Leave standalone splat viewer if active.
   await PlyViewer.cleanup();
 
-  clearActiveStandardModel();
-
+  // 先加载新模型，完成后再替换旧模型，避免切换时出现空帧。
   let object = null;
   switch (format) {
     case 'glb':
@@ -304,11 +345,28 @@ async function loadStandardModel(path, format, token) {
       throw new Error(`不支持的模型格式: ${format}`);
   }
 
-  if (!object || token !== loadToken) return;
+  if (!object || token !== loadToken) {
+    if (object) disposeObject3D(object);
+    return;
+  }
 
+  // 替换：移除旧模型，加入新模型。
+  clearActiveStandardModel();
   scene.add(object);
   activeStandardObject = object;
   resetCameraForModel(object);
+}
+
+function reportLoadProgress(xhr, token) {
+  if (token !== loadToken || !xhr) return;
+
+  if (xhr.lengthComputable && xhr.total > 0) {
+    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+    showLoading(`正在加载模型: ${percent}%`);
+  } else if (xhr.loaded > 0) {
+    const mb = (xhr.loaded / (1024 * 1024)).toFixed(1);
+    showLoading(`正在加载模型: 已接收 ${mb} MB`);
+  }
 }
 
 function loadGLTF(path, token) {
@@ -333,11 +391,12 @@ function loadGLTF(path, token) {
         dracoLoader.dispose?.();
         resolve(object);
       },
-      (xhr) => {
-        if (token !== loadToken || !xhr.lengthComputable) return;
-        const percent = Math.round((xhr.loaded / Math.max(xhr.total, 1)) * 100);
-        showLoading(`正在加载模型: ${percent}%`);
-      },
+      // (xhr) => {
+      //   if (token !== loadToken || !xhr.lengthComputable) return;
+      //   const percent = Math.round((xhr.loaded / Math.max(xhr.total, 1)) * 100);
+      //   showLoading(`正在加载模型: ${percent}%`);
+      // },
+      (xhr) => reportLoadProgress(xhr, token),
       (error) => {
         dracoLoader.dispose?.();
         reject(error);
@@ -360,7 +419,8 @@ function loadOBJ(path, token) {
         applyShadowFlags(object);
         resolve(object);
       },
-      undefined,
+      //undefined,
+      (xhr) => reportLoadProgress(xhr, token),
       reject
     );
   });
@@ -392,7 +452,7 @@ function loadSTL(path, token) {
         mesh.receiveShadow = true;
         resolve(mesh);
       },
-      undefined,
+      (xhr) => reportLoadProgress(xhr, token),
       reject
     );
   });
